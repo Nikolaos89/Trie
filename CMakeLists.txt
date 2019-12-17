@@ -3,4 +3,10 @@ project(Trie)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Trie main.cpp cmake-build-debug/Trie.h cmake-build-debug/CMakeFiles/Entry.cpp)
+include_directories(.)
+include_directories(cmake-build-debug)
+
+add_executable(Trie
+        cmake-build-debug/cmake_install.cmake
+        cmake-build-debug/Trie.h
+        main.cpp Trie.h)

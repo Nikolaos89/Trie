@@ -25,6 +25,7 @@ public:
     typedef T mapped_type;
 
 
+
     // ----------------------------------------------------------------------------------------
     // KNOTENKLASSE
     // abstrakte Knotenklasse als innere Klasse von Trie
@@ -66,7 +67,7 @@ public:
             val = c;
         }
 
-        std::set<Node*> children;
+        std::set<Node> children;
 
 
         bool isLeaf = false;
@@ -122,8 +123,10 @@ public:
         innerNode *crawler =root;
         //2.
         string current;
-        std::pair<std::set<Node*>::iterator,bool> ret;
-        std::set<Node>::iterator it;
+
+
+        std::set<Node>::iterator;
+        std::pair<set<int>::iterator,bool> ret;
         for (int j = 0; j < val.first.key.length(); j++) {
 
             current=val.first.key.at(j);
@@ -137,14 +140,15 @@ public:
             }
         // leaf an abschlusszeichen inneren Knoten hängen
         innerNode insertletter = new innerNode("$");
-        insertletter.children.insert(leaf lastOne=new leaf(*val));
+        leaf lastOne=new leaf(*val);
+        insertletter.children.insert(lastOne);
         //inneren an vorherigen knoten hängen
         crawler->children.insert(insertletter);
 
 
 
             }
-        };
+
 
 
 
@@ -167,6 +171,7 @@ public:
     iterator begin(); // returns end() if not found
     iterator end();*/
 //----------------------------------------------------------------------------------------
+
 };
 
 #endif //TRIE_TRIE_H

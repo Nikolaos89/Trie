@@ -8,7 +8,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
-#include <list>
+#include <set>
 
 using namespace std;
 
@@ -45,7 +45,11 @@ public:
 
         virtual void print(string prefix = "");
 
-        virtual void addChild(Node toadd);
+        bool operator<(const Node &n) const {
+            return (this->key < n.key);
+        }
+
+
 
 
     };
@@ -62,17 +66,13 @@ public:
             val = c;
         }
 
-        std::list<Node *> children;
-        list<char>::iterator itr;
+        std::set<Node*> children;
+
 
         bool isLeaf = false;
         key_type val;
 
-        void addChild(Node add) {
 
-            children.push_front(new Node(add.key));
-
-        }
 
 //            void print(string prefix = ""){
 //                string my_prefix = prefix;
@@ -105,8 +105,8 @@ public:
     Node root;
 
     Trie() {
-        root = new Node;
-        root.isLeaf = true;
+        root = new Node();
+        root.isLeaf = false;
     }
 
     /*  1.Set a current node as a root node
@@ -115,36 +115,37 @@ public:
             then set current node to that referenced node.
             Otherwise, create a new node, set the letter equal to the current letter, and also initialize current node to this new node
         4. Repeat step 3 until the key is traversed*/
-    void insert(key_type key, value_type val) {
+
+
+    void insert(Node *root, value_type val) {
         //1
-        Node *crawler = root;
+        innerNode *crawler =root;
         //2.
-        for (int j = 0; j < key.length()-1; j++) {
-            //  3.
-            char current = key.at(j);
-            list < Node * > liste;
-            liste = crawler->children;
-            bool found = false;
-            for (int i = 0; i < liste.size() - 1; i++) {
-                Node what = liste.front();
-                if (what.key.compare(current) == 0) {
-                    found = true;
-                    *crawler = what;
-                    break;
-                }
-                liste.pop_front();
-                // es fehlt was ist wenn letzter buchstabe dann leaf
+        string current;
+        std::pair<std::set<Node*>::iterator,bool> ret;
+        std::set<Node>::iterator it;
+        for (int j = 0; j < val.first.key.length(); j++) {
+
+            current=val.first.key.at(j);
+
+          // insert prüft ob element bereits vorhanden, wenn nein hinzugefügen und return pointer wennn ja returnt pointer dort hin
+          // pair:first von ret ist entweder oben genannter pointer oder das equivalente element im set
+                Node insertletter = new innerNode(current);
+            ret=crawler->children.insert(insertletter);
+              crawler= ret.first;
+
             }
-            if (!found) {
+        // leaf an abschlusszeichen inneren Knoten hängen
+        innerNode insertletter = new innerNode("$");
+        insertletter.children.insert(leaf lastOne=new leaf(*val));
+        //inneren an vorherigen knoten hängen
+        crawler->children.insert(insertletter);
 
-                Node insertletter = new Node(current);
-                crawler->addChild(insertletter);
-                *crawler= insertletter;
+
+
             }
+        };
 
-
-        }
-    }
 
 
 //---------------------------------------------------------------------------------------------

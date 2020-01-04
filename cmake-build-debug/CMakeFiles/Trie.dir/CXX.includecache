@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/marielena/git/Trie/Trie.h
+iostream
+-
+iterator
+-
+map
+-
+list
+-
+
+/home/marielena/git/Trie/main.cpp
+iostream
+-
+Trie.h
+/home/marielena/git/Trie/Trie.h
+

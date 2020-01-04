@@ -11,9 +11,8 @@
 
 using namespace std;
 
-// Size = constant setting maximum list size
-template<class T, class E = char>
 
+template <class T, class E=char>
 class Trie {
 
 public:

@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Trie.h"
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    Trie<string> trial ;
+
+    trial.root;
     return 0;
 }

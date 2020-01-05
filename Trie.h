@@ -33,18 +33,18 @@ public:
     class Node {
 
     public:
-        // default Constructor um Liste von Nodes nutzen zu können
+        key_type key;
+        value_type value;
+        bool isLeaf;
         Node();
 
         Node(const bool *);
 
         Node(char c);
 
-        key_type key;
-        value_type value;
-        bool isLeaf;
 
-        virtual void print(string prefix = "");
+
+        virtual void print();
 
         bool operator<(const Node &n) const {
             return (this->key < n.key);
@@ -62,7 +62,7 @@ public:
     class innerNode : Node {
     public:
 
-        innerNode(const char *c) : Node(c) {
+        innerNode(const char c) : Node(c) {
             isLeaf = false;
             val = c;
         }
@@ -75,15 +75,20 @@ public:
 
 
 
-//            void print(string prefix = ""){
-//                string my_prefix = prefix;
-//
-//                for(itr = children.begin(); itr != children.end(); itr++){
-//                    cout << prefix << itr->first() << endl;
-//                    my_prefix += " ";
-//                    itr->second.print(my_prefix);
-//                }
-//            }
+       void print(){
+           cout<<"IsLeaf="<<this->isLeaf<<endl;
+           cout<<"val="<<this->val<endl;
+       }
+
+
+       /*     void print(string prefix = ""){
+                string my_prefix = prefix;
+
+                for(itr = children.begin(); itr != children.end(); itr++){
+                    cout << prefix << itr->first() << endl;
+                    my_prefix += " ";
+                    itr->second.print(my_prefix);
+                }*/
 
     };
 
@@ -97,17 +102,20 @@ public:
 
         bool isLeaf = true;
         value_type value;
-
+        void print(){
+            cout<<"IsLeaf="<<this->isLeaf<<endl;
+            cout<<"value="<<this->value.first<<" "<< this->value.second<<endl;
+        }
 
     };
 
     //---------------------------------------------------------------------------------------------
 //TRIE
-    Node root;
+    Node* root;
 
     Trie() {
         root = new Node();
-        root.isLeaf = false;
+
     }
 
     /*  1.Set a current node as a root node

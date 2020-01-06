@@ -1,6 +1,4 @@
-//
-//
-//
+
 
 #ifndef TRIE_TRIE_H
 #define TRIE_TRIE_H
@@ -11,7 +9,19 @@
 #include <set>
 
 using namespace std;
+/* Email Fischer:
+ Eine Anmerkung noch:
 
+Wie im Code vermerkt, würde ich Ihnen (noch einfacher und lehrreicher) eine std::map empfehlen, die E (also Buchstaben) auf Node* abbildet. Node* kann dabei entweder auf
+einen inneren
+Knoten (z.B. InnerNode) oder ein Blatt (Leaf) zeigen, die jeweils per new auf dem Heap alloziert werden. Ein Leaf wird dabei (s. Grafiken auf der Angabe) immer nur mit
+einem Terminalzeichen (z.B. '\0') assoziiert.
+
+Trie::insert könnte sich dann auf innerNode::insert(key_type key,const& mapped_type val) abstützen, der die Arbeit rekursiv erledigt:
+Ist key leer, wird ein Leaf erzeugt und in der Map unter '\0' eingetragen.
+Ansonsten kümmert sich insert nur um den ersten Buchstaben von key: Gibts den noch nicht in der Map, wird ein neuer innerNode unter diesem Buchstaben eingetragen, ansonsten
+der gefundene innerNode verwendet, um mit einem Aufruf von insert sich um den Rest des key (bis auf den ersten Buchstaben) zu kümmern.*/
+// kommentare welche mit MF anfangen sind von ihm
 
 // (vergl. map in der STL)
 template<class T, class E=char>
@@ -36,7 +46,8 @@ public:
         key_type key;
         value_type value;
         bool isLeaf;
-        Node();
+//MF        Node();
+        Node(){};
 
         Node(const bool *);
 
@@ -44,7 +55,10 @@ public:
 
 
 
-        virtual void print();
+//MF        virtual void print();
+//MF da Sie print hier nicht implementieren wollen, sondern nur im Sinne eines Interfaces "versprechen", dass ableitende Klassen print implementieren,
+//MF sollten Sie print als "pure virtual" deklarieren (... =0;)
+        virtual void print() = 0;
 
         bool operator<(const Node &n) const {
             return (this->key < n.key);
@@ -59,15 +73,22 @@ public:
     // Blätter und innere Knoten sind Spezialisierung der Knotenklasse & haben unterschiedlichen Typ
     // innere Knoten : haben markierte Kindzeiger
     // Sohnzeiger eines Knoten als geordete lineare Liste ( VL oder STL-Klasse) -> Blätter sind aufsteigend sortiert
-    class innerNode : Node {
+//MF bitte public ableiten!!!    class innerNode : Node {
+    class innerNode : public Node {
     public:
 
+        //MF in Zeile 124 verwenden Sie den Default-Konstruktor. Der automatisch generierte wird gelöscht, wenn Sie einen speziellen anbieten
+        //MF somit müssen Sie ihn selber implementieren
+        innerNode(){}
+
+        //MF den werden Sie nicht brauchen: Wenn Sie eine Map verwenden, wissen Sie schon im Elternknoten, unter welchem Zeichen Sie zum jeweiligen Kind gelangen -> val weg; isLeaf: Da Sie ohnehin im Typ innerNode sind, weg. Sie wissen, dass unter dem Terminalzeichen immer ein Leaf kommt, also müssen Sie nicht mehr fragen
         innerNode(const char c) : Node(c) {
             isLeaf = false;
             val = c;
         }
-
-        std::set<Node> children;
+//MF besser wäre hier eine map<E,Node*> , die jeweils ein Zeichen auf den zugehörigen Pointer zum Kind (innerNode oder leaf) abbildet
+//MF mindestens aber Node* statt Node (s.o.)       std::set<Node> children;
+        std::set<Node*> children;
 
 
         bool isLeaf = false;
@@ -75,20 +96,21 @@ public:
 
 
 
-       void print(){
-           cout<<"IsLeaf="<<this->isLeaf<<endl;
-           cout<<"val="<<this->val<endl;
-       }
+        void print(){
+            cout<<"IsLeaf="<<this->isLeaf<<endl;
+//MF type           cout<<"val="<<this->val<endl;
+            cout<<"val="<<this->val<<endl;
+        }
 
 
-       /*     void print(string prefix = ""){
-                string my_prefix = prefix;
+        /*     void print(string prefix = ""){
+                 string my_prefix = prefix;
 
-                for(itr = children.begin(); itr != children.end(); itr++){
-                    cout << prefix << itr->first() << endl;
-                    my_prefix += " ";
-                    itr->second.print(my_prefix);
-                }*/
+                 for(itr = children.begin(); itr != children.end(); itr++){
+                     cout << prefix << itr->first() << endl;
+                     my_prefix += " ";
+                     itr->second.print(my_prefix);
+                 }*/
 
     };
 
@@ -114,7 +136,10 @@ public:
     Node* root;
 
     Trie() {
-        root = new Node();
+//MF Node ist - da es mindestens eine pure virtual Methode enthält - eine abstrakte Klasse (Interface), von der Sie kein Objekt anlegen können.
+//MF Sie wissen es ja ohnehin besser: Es ist ein InnerNode
+        //MF root = new Node();
+        root = new innerNode;
 
     }
 
@@ -139,13 +164,13 @@ public:
 
             current=val.first.key.at(j);
 
-          // insert prüft ob element bereits vorhanden, wenn nein hinzugefügen und return pointer wennn ja returnt pointer dort hin
-          // pair:first von ret ist entweder oben genannter pointer oder das equivalente element im set
-                Node insertletter = new innerNode(current);
+            // insert prüft ob element bereits vorhanden, wenn nein hinzugefügen und return pointer wennn ja returnt pointer dort hin
+            // pair:first von ret ist entweder oben genannter pointer oder das equivalente element im set
+            Node insertletter = new innerNode(current);
             ret=crawler->children.insert(insertletter);
-              crawler= ret.first;
+            crawler= ret.first;
 
-            }
+        }
         // leaf an abschlusszeichen inneren Knoten hängen
         innerNode insertletter = new innerNode("$");
         leaf lastOne=new leaf(*val);
@@ -155,7 +180,7 @@ public:
 
 
 
-            }
+    }
 
 
 

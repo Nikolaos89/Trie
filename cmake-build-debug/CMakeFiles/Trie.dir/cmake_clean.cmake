@@ -1,7 +1,9 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/Trie.dir/main.cpp.o"
-  "Trie"
+  "CMakeFiles/Trie.dir/main.cpp.obj"
+  "Trie.exe"
+  "Trie.exe.manifest"
   "Trie.pdb"
+  "libTrie.dll.a"
 )
 
 # Per-language clean rules from dependency scanning.

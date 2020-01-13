@@ -1,5 +1,6 @@
 
 
+
 #ifndef TRIE_TRIE_H
 #define TRIE_TRIE_H
 
@@ -7,204 +8,372 @@
 #include <iterator>
 #include <map>
 #include <set>
+#include <stack>
+#include <vector>
 
 using namespace std;
-/* Email Fischer:
- Eine Anmerkung noch:
 
-Wie im Code vermerkt, würde ich Ihnen (noch einfacher und lehrreicher) eine std::map empfehlen, die E (also Buchstaben) auf Node* abbildet. Node* kann dabei entweder auf
-einen inneren
-Knoten (z.B. InnerNode) oder ein Blatt (Leaf) zeigen, die jeweils per new auf dem Heap alloziert werden. Ein Leaf wird dabei (s. Grafiken auf der Angabe) immer nur mit
-einem Terminalzeichen (z.B. '\0') assoziiert.
 
-Trie::insert könnte sich dann auf innerNode::insert(key_type key,const& mapped_type val) abstützen, der die Arbeit rekursiv erledigt:
-Ist key leer, wird ein Leaf erzeugt und in der Map unter '\0' eingetragen.
-Ansonsten kümmert sich insert nur um den ersten Buchstaben von key: Gibts den noch nicht in der Map, wird ein neuer innerNode unter diesem Buchstaben eingetragen, ansonsten
-der gefundene innerNode verwendet, um mit einem Aufruf von insert sich um den Rest des key (bis auf den ersten Buchstaben) zu kümmern.*/
-// kommentare welche mit MF anfangen sind von ihm
-
-// (vergl. map in der STL)
 template<class T, class E=char>
 class Trie {
 
-    // typedefs
 public:
-    // Die Daten sind Paare, bestehend aus einem String als Schlüssel und beliebigen Nutzdaten T
-    typedef basic_string<E> key_type; // string=basic_string<char>
+    typedef basic_string<E> key_type;
     typedef pair<const key_type, T> value_type;
     typedef T mapped_type;
 
+    const key_type terminator = "#";
 
+    class TrieIterator {
+    };
 
-    // ----------------------------------------------------------------------------------------
-    // KNOTENKLASSE
-    // abstrakte Knotenklasse als innere Klasse von Trie
+    typedef TrieIterator iterator;
 
     class Node {
-
-    public:
-        key_type key;
-        value_type value;
-        bool isLeaf;
-//MF        Node();
-        Node(){};
-
-        Node(const bool *);
-
-        Node(char c);
-
-
-
-//MF        virtual void print();
-//MF da Sie print hier nicht implementieren wollen, sondern nur im Sinne eines Interfaces "versprechen", dass ableitende Klassen print implementieren,
-//MF sollten Sie print als "pure virtual" deklarieren (... =0;)
-        virtual void print() = 0;
-
-        bool operator<(const Node &n) const {
-            return (this->key < n.key);
-        }
-
-
-
-
-    };
-
-
-    // Blätter und innere Knoten sind Spezialisierung der Knotenklasse & haben unterschiedlichen Typ
-    // innere Knoten : haben markierte Kindzeiger
-    // Sohnzeiger eines Knoten als geordete lineare Liste ( VL oder STL-Klasse) -> Blätter sind aufsteigend sortiert
-//MF bitte public ableiten!!!    class innerNode : Node {
-    class innerNode : public Node {
     public:
 
-        //MF in Zeile 124 verwenden Sie den Default-Konstruktor. Der automatisch generierte wird gelöscht, wenn Sie einen speziellen anbieten
-        //MF somit müssen Sie ihn selber implementieren
-        innerNode(){}
+        virtual Node *insert(char c) = 0;
 
-        //MF den werden Sie nicht brauchen: Wenn Sie eine Map verwenden, wissen Sie schon im Elternknoten, unter welchem Zeichen Sie zum jeweiligen Kind gelangen -> val weg; isLeaf: Da Sie ohnehin im Typ innerNode sind, weg. Sie wissen, dass unter dem Terminalzeichen immer ein Leaf kommt, also müssen Sie nicht mehr fragen
-        innerNode(const char c) : Node(c) {
-            isLeaf = false;
-            val = c;
+        virtual Node *insert(value_type sol) = 0;
+
+        virtual void print(int level)=0;
+
+
+
+
+        //     virtual void print(string prefix = "");
+
+        //    virtual bool operator<(const Node &n);
+    };
+
+    class Leaf : public Node {
+    public:
+        mapped_type val;
+
+
+        Leaf() {}
+
+        Node *insert(char c) {
+            return nullptr;
         }
-//MF besser wäre hier eine map<E,Node*> , die jeweils ein Zeichen auf den zugehörigen Pointer zum Kind (innerNode oder leaf) abbildet
-//MF mindestens aber Node* statt Node (s.o.)       std::set<Node> children;
-        std::set<Node*> children;
+
+        Node *insert(value_type sol) {
+
+        };
 
 
-        bool isLeaf = false;
-        key_type val;
-
-
-
-        void print(){
-            cout<<"IsLeaf="<<this->isLeaf<<endl;
-//MF type           cout<<"val="<<this->val<endl;
-            cout<<"val="<<this->val<<endl;
+        void print(const int level) {
+            for (int i = 0; i < level/2; i++) {
+                cout << "   ";
+            }
+            cout << ":" << this->val << endl;
         }
 
+        };
 
-        /*     void print(string prefix = ""){
-                 string my_prefix = prefix;
+        class Knot : public Node {
+        public:
+            map<key_type, Node *> kids;
 
-                 for(itr = children.begin(); itr != children.end(); itr++){
-                     cout << prefix << itr->first() << endl;
-                     my_prefix += " ";
-                     itr->second.print(my_prefix);
-                 }*/
+            Knot() {
+
+            }
+
+            Knot *getNewKnot() {
+                Knot *node = new Knot();
+
+                return node;
+            }
+
+            typedef typename map<key_type, Node *>::iterator map_iterator;
+
+            void print(const int level) {
+                for (auto &l: kids) {
+                    if (l.first != "#") {
+                        for (int tmp = 0; tmp <= level; tmp++) {
+                            cout << "  ";
+
+                        }
+                        cout << l.first << endl;
+                    }
+
+                    l.second->print(level+2);
+
+                }
+            }
+
+// inserts first terminator then Leaf returns the leaf
+            Node *insert(value_type sol) {
+                pair<map_iterator, bool> ret;
+                typedef pair<key_type, Node *> entry;
+
+
+                Leaf* ende = new Leaf();
+
+
+                ende->val = sol.second;
+
+                entry eintrag;
+                eintrag.first = "#";
+                eintrag.second = ende;
+
+                kids.insert(eintrag);
+
+                return eintrag.second;
+
+
+            }
+
+// returns Node the char inserted points to
+            Node *insert(char c) {
+
+
+                pair<map_iterator, bool> ret;
+                typedef pair<key_type, Node *> entry;
+
+                Node *neuer = getNewKnot();
+
+                entry eintrag;
+                eintrag.first = c;
+                eintrag.second = neuer;
+
+                ret = kids.insert(eintrag);
+
+                map_iterator neu = ret.first;
+
+                Node *returning = neu->second;
+                return returning;
+            }
+
+
+        };
+
+
+        Knot *root;
+
+        Trie() {
+            root = new Knot();
+        }
+
+/*
+
+    class TrieIterator {
+        typedef TrieIterator iterator;
+        typedef typename map<key_type, Node*>::iterator map_iterator;
+    private:
+
+        typedef pair<map_iterator, map_iterator> breadcrumb;
+        Trie *myTrie;
+        Node *myCursor;
+        stack<breadcrumb> parents;
+
+        TrieIterator(Trie *myTree){
+            this->myTrie = myTree;
+            myCursor = nullptr;
+        }
+    public:
+
+        TrieIterator(Trie *myTrie, value_type keyword){
+            if(keyword.empty()){
+                return TrieIterator(*myTrie);
+            } else {
+                myCursor = myTrie->root;
+                value_type search = keyword + terminator;
+                this->myTrie = myTrie;
+
+                while (true) {
+                    if (search == "") {
+                        return this;
+                    }
+                    // Preparing the record for the current stage to add to the stack
+                    auto search_result = myCursor->kids.find(search.substring(0, 0));
+                    auto end = myCursor->kids.end();
+                    breadcrumb record(search_result, end);
+
+                    // Checking if current letter is found
+                    if (record.first != record.second) {
+                        // If letter is found, record is stored on the stack, cursor is advanced to found node and first letter
+                        // of the search string is removed. Loop is continued.
+                        parents.push(record);
+                        myCursor = search_result->second;
+                        search = search.substring(1);
+                    }
+                        // If not found a end() iterator is returned, signaling that the key was not found
+                    else {
+                        return TrieIterator(myTrie);
+                    }
+                }
+            }
+        }
+
+//Should return reference (T&) to
+//item pointed at
+        value_type & operator *() {
+            return myCursor[current].element;
+        }
+
+        iterator& operator =(const iterator& rhs) {
+            this->myCursor=rhs.myCursor;
+            this->current=rhs.current;
+            return *this;
+        }
+
+        bool operator !=(const iterator& rhs) const {
+
+
+            return &myCursor[current]!=&rhs.myCursor[rhs.current];
+        }
+
+        bool operator ==(const iterator& rhs) const {
+            return &myCursor[current]==&rhs.myCursor[rhs.current];
+        }
+
+        iterator& operator ++() {
+            current= myCursor[current].next;
+
+            return *this;
+
+        }
+
+        iterator operator ++(int) {
+            iterator clone(*this);
+            current=myCursor[current].next;
+
+            return clone;
+        }
+        // postfix operator dummy parameter
+
 
     };
 
-    // Blätter: haben Record
-    class leaf : Node {
-    public :
-        leaf(const value_type *match) : Node(match) {
-            isLeaf = true;
-            value = match;
+
+
+
+
+*/
+
+
+
+        bool empty() const {
+
+            return root->kids.empty();
+        };
+
+
+        iterator insert(const value_type &value) {
+            key_type word = value.first;
+
+
+            Knot *crawlp = root;
+
+
+            char current;
+
+
+            for (int j = 0; j < word.length(); j++) {
+
+                current = word.at(j);
+
+                Knot *gotback = (Knot *) crawlp->insert(current);
+
+                crawlp = gotback;
+
+            }
+            crawlp->insert(value);
+
+        };
+
+        void print() {
+
+root->print(0);
+        };
+
+
+// lege den weg bis leaf zurück und zählt dabei nodes. wenn verzweigung counter neusetzten
+// counter = zulöschende elemente von leaf aus
+// evtl umändern in stack da dann nodes gleich verfügbar
+    void erase(const key_type &value) {
+
+        key_type current;
+        Knot *crawlp = root;
+        int counter = 0;
+        for (int j = 0; j < value.length(); j++) {
+            counter++;
+            current = value.at(j);
+            if (crawlp->kids.size() != 1) {
+                counter = 0;
+            }
+            crawlp = (Knot *) crawlp->kids.find(current)->second;
         }
 
-        bool isLeaf = true;
-        value_type value;
-        void print(){
-            cout<<"IsLeaf="<<this->isLeaf<<endl;
-            cout<<"value="<<this->value.first<<" "<< this->value.second<<endl;
+        counter++; // für Leaf
+
+        // iteration bis zum node der verzweigung
+        int steps = value.length() - counter;
+        crawlp = root;
+        for (int j = 0; j < steps; j++) {
+            current = value.at(j);
+            crawlp = (Knot *) crawlp->kids.find(current)->second;
+
         }
+        current = value.at(steps);
+
+        Knot *safer = (Knot *) crawlp->kids.find(current)->second;
+        while (true) {
+            crawlp->kids.erase(current);
+            current = safer->kids.begin()->first;
+            if (current == "#") {
+                break;
+            }
+            safer = (Knot *) safer->kids.begin()->second;
+            crawlp = safer;
+        }
+
+        std::cout << current << endl;
+        crawlp->kids.erase("#");
+
 
     };
 
-    //---------------------------------------------------------------------------------------------
-//TRIE
-    Node* root;
-
-    Trie() {
-//MF Node ist - da es mindestens eine pure virtual Methode enthält - eine abstrakte Klasse (Interface), von der Sie kein Objekt anlegen können.
-//MF Sie wissen es ja ohnehin besser: Es ist ein InnerNode
-        //MF root = new Node();
-        root = new innerNode;
-
-    }
-
-    /*  1.Set a current node as a root node
-        2. Set the current letter as the first letter of the word
-        3.If the current node has already an existing reference to the current letter (through one of the elements in the “children” field),
-            then set current node to that referenced node.
-            Otherwise, create a new node, set the letter equal to the current letter, and also initialize current node to this new node
-        4. Repeat step 3 until the key is traversed*/
-
-
-    void insert(Node *root, value_type val) {
-        //1
-        innerNode *crawler =root;
-        //2.
-        string current;
-
-
-        std::set<Node>::iterator;
-        std::pair<set<int>::iterator,bool> ret;
-        for (int j = 0; j < val.first.key.length(); j++) {
-
-            current=val.first.key.at(j);
-
-            // insert prüft ob element bereits vorhanden, wenn nein hinzugefügen und return pointer wennn ja returnt pointer dort hin
-            // pair:first von ret ist entweder oben genannter pointer oder das equivalente element im set
-            Node insertletter = new innerNode(current);
-            ret=crawler->children.insert(insertletter);
-            crawler= ret.first;
-
-        }
-        // leaf an abschlusszeichen inneren Knoten hängen
-        innerNode insertletter = new innerNode("$");
-        leaf lastOne=new leaf(*val);
-        insertletter.children.insert(lastOne);
-        //inneren an vorherigen knoten hängen
-        crawler->children.insert(insertletter);
-
-
-
-    }
-
-
-
-
-//---------------------------------------------------------------------------------------------
-//ITERATOR
-
-    // „...“ im folgenden typedef: keine C/C++ Ellipse, sondern von Ihnen
-    // - am besten als innere Klasse - zu entwickeln…
-
-
-/*  typedef ... iterator;
-    bool empty() const;
-    iterator insert(const value_type& value);
-
-    void erase(const key_type& value);
     void clear(); // erase all
-    iterator lower_bound(const key_type& testElement); // first element >= testElement
+
+
+/*    iterator lower_bound(const key_type& testElement) {
+        if(testElement.empty() || this->empty()){
+            cout << "no test Element" << endl;
+        }
+        typedef pair<Node*, key_type> breadcrumb;
+        stack<breadcrumb> path;
+        Node *current_node = root;
+        key_type word = testElement;
+        bool failed = false;
+
+        while (true){
+           if (current_node->kids->lower_bound(word[0]) == current_node->kids->end()) {
+               if (failed) {
+                   if (path.empty()) {
+                       cout << "lower_bound out of bounds" << endl;
+                       return this->end();
+                   } else {
+                       if (current_node->kids->lower_bound(word[0]) )
+                   }
+               }
+                else {
+                   current_node = path.top();
+               }
+           }
+
+        }
+    }; // first element >= testElement
     iterator upper_bound(const key_type& testElement); // first element > testElement
     iterator find(const key_type& testElement); // first element == testElement
-    iterator begin(); // returns end() if not found
-    iterator end();*/
-//----------------------------------------------------------------------------------------
+    iterator begin(){
+        bool
+        while(true){
 
+        }
+    }; // returns end() if not found
+    iterator end();*/
 };
 
-#endif //TRIE_TRIE_H
+#endif //TRIE_TRIE_

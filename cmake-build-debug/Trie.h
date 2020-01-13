@@ -61,7 +61,7 @@ public:
     };
 
     Knot *root = nullptr;
-
+/*
     class TrieIterator {
         typedef TrieIterator iterator;
         typedef typename map<key_type, Node*>::iterator map_iterator;
@@ -178,7 +178,7 @@ public:
     };
 
     typedef TrieIterator iterator;
-
+*/
     bool empty() const {
         return root == nullptr;
     };

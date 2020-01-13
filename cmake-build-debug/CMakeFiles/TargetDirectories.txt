@@ -1,3 +1,0 @@
-C:/Users/nikol/CLionProjects/AlgoDat/Trie/cmake-build-debug/CMakeFiles/Trie.dir
-C:/Users/nikol/CLionProjects/AlgoDat/Trie/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/nikol/CLionProjects/AlgoDat/Trie/cmake-build-debug/CMakeFiles/rebuild_cache.dir

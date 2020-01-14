@@ -72,12 +72,11 @@ public:
         Node *myCursor;
         stack<breadcrumb> parents;
 
-    public:
-
         TrieIterator(Trie *myTree){
             this->myTrie = myTree;
             myCursor = nullptr;
         }
+    public:
 
         TrieIterator(Trie *myTrie, value_type keyword){
             if(keyword.empty()){
@@ -112,69 +111,44 @@ public:
             }
         }
 
-        iterator begin(Trie *myTrie){
-
-            this->myTrie = myTrie;
-            this->myCursor = myTrie->root;
-
-            //If Trie is empty Iterator with empty Stack is returned
-            if(myTrie->root.kids.empty()){
-                return this;
-            }
-
-            while(true){
-            // Preparing the record for the current stage to add to the stack
-            auto search_result = this->myCursor->kids.find(terminator);
-            auto end = this->myCursor->kids.end();
-            breadcrumb record(search_result, end);
-
-            // Checking if terminal sign is contained in current stage
-            if (record.first == record.second) {
-                // If terminal sign is not found, record is stored on the stack, cursor is advanced to leftmost kid entry
-                this->parents.push(record);
-                this->myCursor = this->myCursor->kids.begin()->second;
-            }
-                // If found: record is stored, cursor is advanced once more and Iterator is returned
-            else {
-                this->parents.push(record);
-                this->myCursor = search_result->second;
-                return this;
-            }
-            }
-        }
-
 //Should return reference (T&) to
 //item pointed at
         value_type & operator *() {
-            return *myCursor;
+            return myCursor[current].element;
         }
 
         iterator& operator =(const iterator& rhs) {
             this->myCursor=rhs.myCursor;
-            this->myTrie=rhs.myTrie;
-            this->parents=rhs.parents;
+            this->current=rhs.current;
             return *this;
         }
 
         bool operator !=(const iterator& rhs) const {
-            return parents.size() != rhs.parents.size();
+
+
+            return &myCursor[current]!=&rhs.myCursor[rhs.current];
         }
 
         bool operator ==(const iterator& rhs) const {
-            return parents.size() == rhs.parents.size();
+            return &myCursor[current]==&rhs.myCursor[rhs.current];
         }
 
-        // nicht fertig
         iterator& operator ++() {
-            if(this->parents.empty()){
-                return *begin(this->myTrie);
-            } else {
-                while(true){
+            current= myCursor[current].next;
 
-                }
-            }
+            return *this;
 
         }
+
+        iterator operator ++(int) {
+            iterator clone(*this);
+            current=myCursor[current].next;
+
+            return clone;
+        }
+        // postfix operator dummy parameter
+
+
     };
 
     typedef TrieIterator iterator;
@@ -189,24 +163,40 @@ public:
     void clear(); // erase all
 
     iterator lower_bound(const key_type& testElement) {
-        return iterator(*this, testElement);
+        if(testElement.empty() || this->empty()){
+            cout << "no test Element" << endl;
+        }
+        typedef pair<Node*, key_type> breadcrumb;
+        stack<breadcrumb> path;
+        Node *current_node = root;
+        key_type word = testElement;
+        bool failed = false;
+
+        while (true){
+           if (current_node->kids->lower_bound(word[0]) == current_node->kids->end()) {
+               if (failed) {
+                   if (path.empty()) {
+                       cout << "lower_bound out of bounds" << endl;
+                       return this->end();
+                   } else {
+                       if (current_node->kids->lower_bound(word[0]) )
+                   }
+               }
+                else {
+                   current_node = path.top();
+               }
+           }
+
+        }
     }; // first element >= testElement
-
-
-    iterator upper_bound(const key_type& testElement){
-        return ++lower_bound(testElement);
-    }; // first element > testElement
-
-    iterator find(const key_type& testElement){
-        return iterator(*this, testElement);
-    }; // first element == testElement
-
+    iterator upper_bound(const key_type& testElement); // first element > testElement
+    iterator find(const key_type& testElement); // first element == testElement
     iterator begin(){
-        return iterator(*this).begin();
-    }; // returns end() if not found
+        bool
+        while(true){
 
-    iterator end(){
-       return iterator(*this);
-    };
+        }
+    }; // returns end() if not found
+    iterator end();
 };
 #endif //TRIE_TRIE_H

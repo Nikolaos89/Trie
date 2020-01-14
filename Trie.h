@@ -24,10 +24,7 @@ public:
 
     const key_type terminator = "#";
 
-    class TrieIterator {
-    };
 
-    typedef TrieIterator iterator;
 
     class Node {
     public:
@@ -155,7 +152,6 @@ public:
             root = new Knot();
         }
 
-/*
 
     class TrieIterator {
         typedef TrieIterator iterator;
@@ -164,29 +160,35 @@ public:
 
         typedef pair<map_iterator, map_iterator> breadcrumb;
         Trie *myTrie;
-        Node *myCursor;
+        Knot *myCursor;
         stack<breadcrumb> parents;
+        Leaf* value ;
+
+    public:
 
         TrieIterator(Trie *myTree){
             this->myTrie = myTree;
             myCursor = nullptr;
         }
-    public:
 
-        TrieIterator(Trie *myTrie, value_type keyword){
+        TrieIterator(Trie *myTrie, value_type paar){
+            key_type keyword= paar.first;
             if(keyword.empty()){
-                return TrieIterator(*myTrie);
+TrieIterator(*myTrie);
+              //  return TrieIterator(*myTrie);
             } else {
                 myCursor = myTrie->root;
-                value_type search = keyword + terminator;
+                key_type search = keyword + "#";
                 this->myTrie = myTrie;
 
                 while (true) {
                     if (search == "") {
-                        return this;
+                        value= (Leaf*) myCursor;
+                       break;
                     }
                     // Preparing the record for the current stage to add to the stack
-                    auto search_result = myCursor->kids.find(search.substring(0, 0));
+                   /* string tofind= search.substr()*/
+                    auto search_result = myCursor->kids.find(search.substr(0, 1));
                     auto end = myCursor->kids.end();
                     breadcrumb record(search_result, end);
 
@@ -195,13 +197,49 @@ public:
                         // If letter is found, record is stored on the stack, cursor is advanced to found node and first letter
                         // of the search string is removed. Loop is continued.
                         parents.push(record);
-                        myCursor = search_result->second;
-                        search = search.substring(1);
+                        myCursor = (Knot*) search_result->second;
+                        if(search.size()>1) {
+                            search = search.substr(1);
+                        }else{ search="";
+
+
+                        }
                     }
                         // If not found a end() iterator is returned, signaling that the key was not found
                     else {
-                        return TrieIterator(myTrie);
+                        myCursor= nullptr;
                     }
+                }
+            }
+        }
+
+        iterator begin(Trie *myTrie){
+
+            this->myTrie = myTrie;
+            this->myCursor = myTrie->root;
+
+            //If Trie is empty Iterator with empty Stack is returned
+            if(myTrie->root.kids.empty()){
+                return this;
+            }
+
+            while(true){
+                // Preparing the record for the current stage to add to the stack
+                auto search_result = this->myCursor->kids.find(terminator);
+                auto end = this->myCursor->kids.end();
+                breadcrumb record(search_result, end);
+
+                // Checking if terminal sign is contained in current stage
+                if (record.first == record.second) {
+                    // If terminal sign is not found, record is stored on the stack, cursor is advanced to leftmost kid entry
+                    this->parents.push(record);
+                    this->myCursor = this->myCursor->kids.begin()->second;
+                }
+                    // If found: record is stored, cursor is advanced once more and Iterator is returned
+                else {
+                    this->parents.push(record);
+                    this->myCursor = search_result->second;
+                    return this;
                 }
             }
         }
@@ -209,48 +247,38 @@ public:
 //Should return reference (T&) to
 //item pointed at
         value_type & operator *() {
-            return myCursor[current].element;
+            return *myCursor;
         }
 
         iterator& operator =(const iterator& rhs) {
             this->myCursor=rhs.myCursor;
-            this->current=rhs.current;
+            this->myTrie=rhs.myTrie;
+            this->parents=rhs.parents;
             return *this;
         }
 
         bool operator !=(const iterator& rhs) const {
-
-
-            return &myCursor[current]!=&rhs.myCursor[rhs.current];
+            return parents.size() != rhs.parents.size();
         }
 
         bool operator ==(const iterator& rhs) const {
-            return &myCursor[current]==&rhs.myCursor[rhs.current];
+            return parents.size() == rhs.parents.size();
         }
 
+        // nicht fertig
         iterator& operator ++() {
-            current= myCursor[current].next;
+            if(this->parents.empty()){
+                return *begin(this->myTrie);
+            } else {
+                while(true){
 
-            return *this;
+                }
+            }
 
         }
-
-        iterator operator ++(int) {
-            iterator clone(*this);
-            current=myCursor[current].next;
-
-            return clone;
-        }
-        // postfix operator dummy parameter
-
-
     };
 
-
-
-
-
-*/
+    typedef TrieIterator iterator;
 
 
 
@@ -279,7 +307,9 @@ public:
                 crawlp = gotback;
 
             }
-            crawlp->insert(value);
+         crawlp->insert(value);
+iterator it=TrieIterator(this,value);
+return  it;
 
         };
 
@@ -329,51 +359,39 @@ root->print(0);
             crawlp = safer;
         }
 
-        std::cout << current << endl;
+
         crawlp->kids.erase("#");
 
 
     };
 
-    void clear(); // erase all
+    void clear(){
+      /* mit iterator über tree iterieren und dann erase aufrufen*/
+    }
 
 
-/*    iterator lower_bound(const key_type& testElement) {
-        if(testElement.empty() || this->empty()){
-            cout << "no test Element" << endl;
-        }
-        typedef pair<Node*, key_type> breadcrumb;
-        stack<breadcrumb> path;
-        Node *current_node = root;
-        key_type word = testElement;
-        bool failed = false;
-
-        while (true){
-           if (current_node->kids->lower_bound(word[0]) == current_node->kids->end()) {
-               if (failed) {
-                   if (path.empty()) {
-                       cout << "lower_bound out of bounds" << endl;
-                       return this->end();
-                   } else {
-                       if (current_node->kids->lower_bound(word[0]) )
-                   }
-               }
-                else {
-                   current_node = path.top();
-               }
-           }
-
-        }
+    iterator lower_bound(const key_type& testElement) {
+        return iterator(*this, testElement);
     }; // first element >= testElement
-    iterator upper_bound(const key_type& testElement); // first element > testElement
-    iterator find(const key_type& testElement); // first element == testElement
-    iterator begin(){
-        bool
-        while(true){
 
-        }
+
+    iterator upper_bound(const key_type& testElement){
+        return ++lower_bound(testElement);
+    }; // first element > testElement
+
+    iterator find(const key_type& testElement){
+        return iterator(*this, testElement);
+    }; // first element == testElement
+
+    iterator begin(){
+        return iterator(*this).begin();
     }; // returns end() if not found
-    iterator end();*/
+
+    iterator end(){
+        return iterator(*this);
+    };
+
 };
 
 #endif //TRIE_TRIE_
+
